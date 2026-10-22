@@ -352,11 +352,23 @@
     return categorize(raw, spec);
   }
 
+  function closeEnough(typed, expected) {
+    const a = canonical(typed);
+    const b = canonical(expected);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    const dist = levenshtein(a, b);
+    if (dist <= 1) return true;
+    if (b.length >= 6 && dist <= 2) return true;
+    return false;
+  }
+
   return {
     CATEGORIES: CATEGORIES,
     normalizeAnswer: normalizeAnswer,
     canonical: canonical,
     lemmaKey: lemmaKey,
-    checkAnswer: checkAnswer
+    checkAnswer: checkAnswer,
+    closeEnough: closeEnough
   };
 });

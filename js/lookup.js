@@ -106,16 +106,38 @@
     return result;
   }
 
-  function speak(text) {
+  let currentAudio = null;
+
+  function speak(text, options) {
+    const opts = options || {};
     if (!window.speechSynthesis || !text) return false;
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'en-US';
+    utter.rate = opts.slow ? 0.7 : 1;
     const voices = window.speechSynthesis.getVoices() || [];
-    const voice = voices.find(function (item) { return item.lang === 'en-US'; }) || voices.find(function (item) { return /^en/i.test(item.lang); });
+    const voice = voices.find(function (item) { return item.lang === 'en-US'; }) || voices.find(function (item) { return /^en(-|_)US/i.test(item.lang); }) || voices.find(function (item) { return /^en/i.test(item.lang); });
     if (voice) utter.voice = voice;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utter);
     return true;
+  }
+
+  function pronounce(text, options) {
+    const opts = options || {};
+    const audioUrl = opts.audio && /^https:\/\//i.test(opts.audio) ? opts.audio : '';
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      currentAudio = audio;
+      audio.playbackRate = opts.slow ? 0.75 : 1;
+      return audio.play().then(function () { return 'file'; }).catch(function () {
+        return speak(text, opts) ? 'voice' : false;
+      });
+    }
+    return Promise.resolve(speak(text, opts) ? 'voice' : false);
   }
 
   function posRu(pos) {
@@ -123,5 +145,5 @@
     return map[String(pos || '').toLowerCase()] || pos || '';
   }
 
-  return { lookupText: lookupText, speak: speak, posRu: posRu };
+  return { lookupText: lookupText, speak: speak, pronounce: pronounce, posRu: posRu };
 });

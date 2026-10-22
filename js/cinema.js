@@ -24,9 +24,10 @@
 
   function db() {
     return new Promise(function (resolve, reject) {
-      const req = indexedDB.open('english-lab', 1);
+      const req = indexedDB.open('english-lab', 2);
       req.onupgradeneeded = function () {
         if (!req.result.objectStoreNames.contains('subtitles')) req.result.createObjectStore('subtitles');
+        if (!req.result.objectStoreNames.contains('images')) req.result.createObjectStore('images');
       };
       req.onsuccess = function () { resolve(req.result); };
       req.onerror = function () { reject(req.error); };

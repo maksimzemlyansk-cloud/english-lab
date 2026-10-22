@@ -75,7 +75,7 @@
     try {
       if (!driveToken) await requestDriveToken(true);
       if (!driveFileId) await findDriveFile();
-      const payload = JSON.stringify({ version: 2, updatedAt: EL.state.data.lastUpdatedAt || new Date().toISOString(), data: EL.state.data });
+      const payload = JSON.stringify({ version: 2, updatedAt: EL.state.data.lastUpdatedAt || new Date().toISOString(), data: EL.forSync(EL.state.data) });
       if (driveFileId) {
         await driveRequest('https://www.googleapis.com/upload/drive/v3/files/' + encodeURIComponent(driveFileId) + '?uploadType=media', {
           method: 'PATCH',

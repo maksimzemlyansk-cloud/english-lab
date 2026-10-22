@@ -19,6 +19,43 @@
     return { step: 0, completed: false, phrase: '', practiceDraft: '', currentId: '', items: {}, warmup: { attempts: [], revealed: false, correct: false } };
   }
 
+  function httpsUrl(value) {
+    return /^https:\/\//i.test(String(value || '')) ? String(value) : '';
+  }
+
+  function cleanImage(image) {
+    if (!image || typeof image !== 'object') return null;
+    const own = image.kind === 'local' || image.source === 'own';
+    if (own) {
+      return {
+        kind: 'local',
+        source: 'own',
+        url: '',
+        thumb: '',
+        title: String(image.title || 'Своя картинка').slice(0, 140),
+        creator: '',
+        license: 'свой файл',
+        licenseUrl: '',
+        sourceUrl: '',
+        attribution: 'Своя картинка хранится только на этом устройстве.'
+      };
+    }
+    const url = httpsUrl(image.url);
+    if (!url) return null;
+    return {
+      kind: 'remote',
+      source: String(image.source || '').slice(0, 40),
+      url: url,
+      thumb: httpsUrl(image.thumb) || url,
+      title: String(image.title || '').slice(0, 180),
+      creator: String(image.creator || '').slice(0, 180),
+      license: String(image.license || '').slice(0, 80),
+      licenseUrl: httpsUrl(image.licenseUrl),
+      sourceUrl: httpsUrl(image.sourceUrl),
+      attribution: String(image.attribution || '').slice(0, 300)
+    };
+  }
+
   function migrateWord(word) {
     const src = word || {};
     const source = src.source || 'manual';
@@ -39,8 +76,35 @@
       box: typeof src.box === 'number' ? src.box : 0,
       pos: src.pos || '',
       phonetic: src.phonetic || '',
-      definition: src.definition || ''
+      audio: httpsUrl(src.audio),
+      definition: src.definition || '',
+      stage: src.stage === 'learn' ? 'learn' : 'review',
+      mnemonic: String(src.mnemonic || '').slice(0, 500),
+      imageQuery: String(src.imageQuery || '').slice(0, 80),
+      image: cleanImage(src.image)
     };
+  }
+
+  function forSync(data) {
+    const copy = JSON.parse(JSON.stringify(data || {}));
+    (copy.words || []).forEach(function (word) {
+      if (!word || !word.image) return;
+      if (word.image.kind === 'local' || word.image.source === 'own' || String(word.image.url || '').indexOf('data:') === 0) {
+        word.image = {
+          kind: 'local',
+          source: 'own',
+          url: '',
+          thumb: '',
+          title: 'Своя картинка',
+          creator: '',
+          license: 'свой файл',
+          licenseUrl: '',
+          sourceUrl: '',
+          attribution: 'Своя картинка хранится только на этом устройстве.'
+        };
+      }
+    });
+    return copy;
   }
 
   function sanitizeVideo(video) {
@@ -208,7 +272,12 @@
       ease: 2.5,
       reps: 0,
       lapses: 0,
-      box: 0
+      box: 0,
+      stage: entry.stage === 'learn' ? 'learn' : 'review',
+      imageQuery: entry.imageQuery || '',
+      mnemonic: entry.mnemonic || '',
+      audio: entry.audio || '',
+      phonetic: entry.phonetic || ''
     });
     state.data.words.unshift(word);
     save();
@@ -228,12 +297,17 @@
     return word;
   }
 
+  function countsAsDue(word, today) {
+    if (!word || word.stage === 'learn') return false;
+    return srs.isDue(word, today || util.todayISO());
+  }
+
   function dueWords() {
-    return state.data.words.filter(function (word) { return srs.isDue(word, util.todayISO()); });
+    return state.data.words.filter(function (word) { return countsAsDue(word); });
   }
 
   function exportPayload() {
-    return { version: 2, exportedAt: new Date().toISOString(), data: state.data };
+    return { version: 2, exportedAt: new Date().toISOString(), data: forSync(state.data) };
   }
 
   return {
@@ -257,6 +331,8 @@
     deleteWord: deleteWord,
     grade: grade,
     dueWords: dueWords,
+    countsAsDue: countsAsDue,
+    forSync: forSync,
     exportPayload: exportPayload,
     stable: stable
   };

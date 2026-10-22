@@ -1,4 +1,4 @@
-const CACHE = 'english-lab-shell-v2';
+const CACHE = 'english-lab-shell-v3';
 const FILES = [
   './',
   './index.html',
@@ -7,13 +7,16 @@ const FILES = [
   './js/checker.js',
   './js/srs.js',
   './js/lesson-data.js',
+  './js/starter-words.js',
   './js/subtitles.js',
   './js/breakdown.js',
   './js/storage.js',
   './js/lookup.js',
+  './js/images.js',
   './js/drive.js',
   './js/lesson.js',
   './js/vocab.js',
+  './js/memorize.js',
   './js/cinema.js',
   './js/app.js',
   './manifest.webmanifest',

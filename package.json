@@ -2,6 +2,6 @@
   "name": "english-lab",
   "private": true,
   "scripts": {
-    "test": "node --test tests/checker.test.js tests/subtitles.test.js tests/breakdown.test.js tests/migrate.test.js tests/srs.test.js"
+    "test": "node --test tests/checker.test.js tests/subtitles.test.js tests/breakdown.test.js tests/migrate.test.js tests/srs.test.js tests/images.test.js tests/starter.test.js"
   }
 }

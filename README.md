@@ -8,8 +8,10 @@ Lessons 1–4 share one five-step flow: повторение, объяснени
 
 1. **to be** — am/is/are in statements, negatives, questions, and short answers.
 2. **Present Simple affirmative** — he/she/it -s/-es, habits, frequency adverbs.
-3. **Present Continuous affirmative** — am/is/are + -ing, spelling (running, making), now / at the moment.
+3. **Present Continuous affirmative** — am/is/are + -ing, spelling (running, making, getting), now / at the moment.
 4. **Questions and negatives** — Present Simple vs Present Continuous.
+
+Example sentences sit in travel and everyday communication where that still fits the grammar: airport, hotel, directions, ordering food, meeting people, small talk, and messages.
 
 A new profile starts at lesson 1. Lessons unlock in order. Lesson 4 progress saved by the previous version stays on lesson 4 and can be reopened; the continue button still opens lesson 1 until that lesson is finished. Practice shows one item at a time. A wrong try gets a specific Russian note and can be retried. «Показать ответ» appears only after a wrong try. Session length changes how many of the 8 items are in practice: 5 minutes → 3, 20 → 6, 40 → 8.
 
@@ -19,7 +21,11 @@ Answers are checked locally. The checker normalizes case, punctuation, apostroph
 
 Words can be added and deleted by hand. A wrong lesson answer can add the lesson word automatically (source «урок»); Cinema Lab can save a word or phrase with the subtitle line and a timecode (source «Cinema Lab»). Manual entries are marked «вручную». Duplicates are skipped with a case-insensitive, lemma-ish match. Auto-added rows can be removed.
 
-«Повторение» shows cards that are due today: English → reveal → Не помню / Трудно / Помню. The schedule stores a due date, interval, and ease (a small SM-2-like update). The home count is the real number of cards due today.
+«Повторение» shows cards that are due today: English → reveal → Не помню / Трудно / Помню. The schedule stores a due date, interval, and ease (a small SM-2-like update). The home count is the real number of cards due today. Words still in «Заучивание» are not included.
+
+«Заучивание» is a separate queue for new words. A batch is 5 or 10 cards: see the word, listen, then three local checks (pick the Russian meaning, type the English word with a one-letter tolerance, listen and pick). A word that passes joins the same review schedule, first due the next day. A miss stays in the queue and is not recorded as a review.
+
+The starter list is 30 high-frequency travel and communication words and phrases (about A1–A2). It is not progress: nothing is saved until the learner adds a row to the queue. Cards can show a saved example sentence, a mnemonic, and an optional association image. Remote images come from Openverse, then Wikimedia Commons if Openverse does not answer. The chosen URL is stored on the word with creator, licence, and source links. Openverse does not verify licences. Anonymous Openverse use is about 20 requests per minute and 200 per day (January 2025 maintainer figures; the `X-RateLimit-*` headers are the live values and can change). A 429 means the limit was hit. Wikimedia Commons is the keyless fallback (`origin=*`, a few results per search). Own pictures are resized in the browser to a JPEG and kept in IndexedDB. They are omitted from Drive sync and from the JSON backup. If no image is available, the card shows the word with no picture.
 
 Lookup uses two keyless browser calls, then caches the result on the device:
 
@@ -42,7 +48,7 @@ Full subtitle text is stored in IndexedDB on the device. Drive and JSON backups 
 - `index.html` — shell. Scripts and styles are plain files, so the page still opens from disk.
 - `js/` — checker, lessons, storage, vocabulary, Cinema Lab, Drive.
 - `css/app.css` — dark layout.
-- `sw.js`, `manifest.webmanifest`, `icon.svg` — offline shell. Cache name `english-lab-shell-v2`.
+- `sw.js`, `manifest.webmanifest`, `icon.svg` — offline shell. Cache name `english-lab-shell-v3`.
 - `tests/` — Node tests for the checker, SRT/VTT parser, breakdown, migration, and review schedule. `npm test` runs them. No dependencies. `tests/smoke.js` loads the page in headless Chrome (needs `puppeteer-core` on `NODE_PATH` and a local Chrome).
 
 ## Local use

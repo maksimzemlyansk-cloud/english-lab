@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { migrate, lessonStatus, isUnlocked } = require('../js/storage.js');
+const { migrate, lessonStatus, isUnlocked, countsAsDue, forSync } = require('../js/storage.js');
 
 test('legacy lesson 4 progress stays, current lesson becomes 1', () => {
   const data = migrate({
@@ -54,6 +54,31 @@ test('new data starts at lesson 1 and does not reset a saved current lesson', ()
   const kept = migrate({ schemaVersion: 2, currentLesson: 3, lessons: { 1: { completed: true, step: 4 }, 2: { completed: true, step: 4 } }, words: [], answers: [] });
   assert.equal(kept.currentLesson, 3);
   assert.equal(kept.lessons[1].completed, true);
+});
+
+test('learn-stage words stay out of review and local pictures stay off the sync copy', () => {
+  const data = migrate({
+    schemaVersion: 2,
+    currentLesson: 1,
+    words: [
+      { en: 'cat', ru: 'кот', stage: 'learn', due: '2020-01-01', mnemonic: 'хвост' },
+      { en: 'dog', ru: 'собака', due: '2020-01-01', image: { kind: 'local', url: 'data:image/jpeg;base64,AAAA' } },
+      { en: 'map', ru: 'карта', image: { kind: 'remote', source: 'openverse', url: 'https://example.com/a.jpg', thumb: 'https://example.com/a.jpg', license: 'cc0' } }
+    ],
+    answers: [],
+    lessons: {}
+  });
+  assert.equal(data.words[0].stage, 'learn');
+  assert.equal(data.words[0].mnemonic, 'хвост');
+  assert.equal(countsAsDue(data.words[0], '2026-01-01'), false);
+  assert.equal(data.words[1].stage, 'review');
+  assert.equal(data.words[1].image.url, '');
+  assert.equal(countsAsDue(data.words[1], '2026-01-01'), true);
+  assert.equal(countsAsDue({ en: 'old', due: '2026-01-01' }, '2026-01-01'), true);
+  const synced = forSync(data);
+  assert.equal(synced.words[1].image.url, '');
+  assert.equal(synced.words[1].image.kind, 'local');
+  assert.equal(synced.words[2].image.url, 'https://example.com/a.jpg');
 });
 
 test('cinema subtitle bodies are not kept in synced video records', () => {

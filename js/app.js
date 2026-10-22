@@ -44,10 +44,11 @@
     const data = EL.state.data;
     const lesson = EL.getLesson(data.currentLesson);
     const due = EL.dueWords().length;
+    const learning = data.words.filter(function (word) { return word.stage === 'learn'; }).length;
     const videos = Object.keys(data.cinema.videos).length;
     app.innerHTML = '<section class="hero"><div class="eyebrow">Американский английский</div><h1>Урок ' + lesson.id + '. ' + EL.esc(lesson.title) + '</h1><p class="muted">Короткий шаг за раз. Прогресс остаётся в этом браузере. «Продолжить» открывает текущий урок, сейчас это урок ' + lesson.id + '.</p></section>' +
       '<section class="card"><div class="row"><div><div class="eyebrow">Сейчас</div><h2>' + EL.esc(lesson.subtitle) + '</h2><p class="muted">Сессия ' + data.settings.dailyMinutes + ' мин · к повторению слов: ' + due + '</p></div><span class="pill">' + EL.esc(lesson.title) + '</span></div><div class="inline"><button class="button primary" data-action="continue">Продолжить</button><button class="button" data-page="learn">Все уроки</button></div></section>' +
-      '<h2 class="section-title">На этом устройстве</h2><div class="grid"><section class="card"><div class="muted small">Слов к повторению</div><div class="stat">' + due + '</div></section><section class="card"><div class="muted small">Видео в Cinema Lab</div><div class="stat">' + videos + '</div><button class="button" data-page="cinema">Открыть кино</button></section></div>';
+      '<h2 class="section-title">На этом устройстве</h2><div class="grid"><section class="card"><div class="muted small">Слов к повторению</div><div class="stat">' + due + '</div><div class="muted small">в заучивании: ' + learning + '</div><button class="button" data-page="vocabulary">Словарь</button></section><section class="card"><div class="muted small">Видео в Cinema Lab</div><div class="stat">' + videos + '</div><button class="button" data-page="cinema">Открыть кино</button></section></div>';
   }
 
   function renderProgress() {
@@ -67,9 +68,10 @@
     const top = Object.keys(cats).sort(function (a, b) { return cats[b] - cats[a]; }).slice(0, 5);
     const videos = Object.keys(data.cinema.videos).map(function (id) { return data.cinema.videos[id]; });
     const lines = videos.reduce(function (sum, video) { return sum + (video.linesStudied || 0); }, 0);
-    const reviewed = data.words.filter(function (word) { return word.reps > 0; }).length;
+    const reviewed = data.words.filter(function (word) { return word.reps > 0 && word.stage !== 'learn'; }).length;
+    const learning = data.words.filter(function (word) { return word.stage === 'learn'; }).length;
     app.innerHTML = '<section class="hero"><div class="eyebrow">Только сохранённые данные</div><h1>Прогресс</h1><p class="muted">Цифры из этого браузера. Приложение не определяет уровень языка.</p></section>' +
-      '<div class="grid"><section class="card"><div class="muted small">Попытки</div><div class="stat">' + answers.length + '</div></section><section class="card"><div class="muted small">Слова в словаре</div><div class="stat">' + data.words.length + '</div><div class="muted small">к повторению сегодня: ' + EL.dueWords().length + ' · уже оценивал: ' + reviewed + '</div></section><section class="card"><div class="muted small">Cinema Lab</div><div class="stat">' + videos.length + '</div><div class="muted small">разобранных реплик: ' + lines + '</div></section><section class="card"><div class="muted small">Текущий урок</div><div class="stat">' + data.currentLesson + '</div></section></div>' +
+      '<div class="grid"><section class="card"><div class="muted small">Попытки</div><div class="stat">' + answers.length + '</div></section><section class="card"><div class="muted small">Слова в словаре</div><div class="stat">' + data.words.length + '</div><div class="muted small">к повторению сегодня: ' + EL.dueWords().length + ' · уже оценивал: ' + reviewed + ' · в заучивании: ' + learning + '</div></section><section class="card"><div class="muted small">Cinema Lab</div><div class="stat">' + videos.length + '</div><div class="muted small">разобранных реплик: ' + lines + '</div></section><section class="card"><div class="muted small">Текущий урок</div><div class="stat">' + data.currentLesson + '</div></section></div>' +
       '<section class="card"><h2>Уроки</h2><ul class="list">' + rows + '</ul></section>' +
       '<section class="card"><h2>Частые ошибки</h2>' + (top.length ? '<ul class="list">' + top.map(function (name) { return '<li>' + EL.esc(name) + ' · ' + cats[name] + '</li>'; }).join('') + '</ul>' : '<div class="empty">Ошибок с категорией пока нет.</div>') + '</section>';
   }
@@ -85,7 +87,7 @@
       '<section class="card"><h2>Длина сессии</h2><p class="muted small">5 минут — 3 задания, 20 минут — 6, 40 минут — все 8. Повторение, объяснение и своя фраза остаются.</p><div class="inline">' + minutes + '</div></section>' +
       '<section class="card"><h2>Google Диск</h2><p>Приложение создаёт файл <code>' + EL.DRIVE_FILE_NAME + '</code> и видит только файлы, которые само создало. Разрешение <code>drive.file</code>.</p><button class="button primary" data-action="drive-connect">' + (enabled ? 'Подключить / синхронизировать' : 'Подключить Google Диск') + '</button><p id="drive-status" class="muted small">' + (enabled ? 'Синхронизация включена в этом браузере.' : 'Синхронизация выключена.') + '</p><p id="settings-message" class="muted small"></p></section>' +
       '<section class="card"><h2>Резервная копия</h2><div class="inline"><button class="button" data-action="export">Скачать копию</button><label class="button" for="import-file">Восстановить из копии</label><input hidden id="import-file" type="file" accept="application/json"></div><p class="notice">В копии нет полного текста субтитров. Есть прогресс уроков, словарь и заметки Cinema Lab.</p></section>' +
-      '<section class="card"><h2>Словарь и перевод</h2><ul class="list"><li>dictionaryapi.dev — определение, часть речи, транскрипция и аудио. Бесплатно, без ключа. Официального лимита запросов нет; сервис держится на пожертвованиях и может быть недоступен.</li><li>MyMemory — перевод en→ru. Без ключа анонимный предел около 5000 символов в день на IP, до 500 байт за запрос. Текст уходит на их сервер. Перевод может быть неточным.</li><li>Озвучка — голос браузера en-US, аудио никуда не отправляется.</li><li>Офлайн словарь и перевод не работают. Уроки, свои слова и загруженные субтитры открываются.</li></ul></section>';
+      '<section class="card"><h2>Словарь, озвучка и картинки</h2><ul class="list"><li>dictionaryapi.dev — определение, часть речи, транскрипция и аудиофайл. Бесплатно, без ключа. Официального лимита нет; сервис на пожертвованиях и может молчать. Если файла нет, слово читает голос браузера en-US. «Медленно» замедляет файл или голос.</li><li>MyMemory — перевод en→ru. Без ключа около 5000 символов в день на IP, до 500 байт за запрос. Текст уходит на их сервер. Перевод может быть неточным.</li><li>Картинки: Openverse (анонимно, без ключа; ориентир 20 запросов в минуту и 200 в день, точные числа в заголовках X-RateLimit и могут меняться) и, если он молчит, Wikimedia Commons. Оба отдают чужие свободные файлы. Под картинкой — автор и лицензия. Сервисы лицензию не гарантируют.</li><li>Своя картинка сжимается и лежит в браузере. В Google Диск и в файл копии она не попадает.</li><li>Офлайн перевод, словарь и поиск картинок не работают. Уроки, свои слова и загруженные субтитры открываются.</li></ul></section>';
   }
 
   function render() {
@@ -140,15 +142,27 @@
 
   document.addEventListener('input', function (event) {
     if (EL.ui.page === 'learn') EL.onLearnInput(event);
+    if (EL.ui.page === 'vocabulary' && EL.onMemorizeInput) EL.onMemorizeInput(event);
   });
 
   document.addEventListener('keydown', function (event) {
     if (event.key !== 'Enter') return;
     if (event.target.id === 'practice') { event.preventDefault(); EL.onLearnClick('check', event.target); }
+    if (event.target.id === 'learn-type') { event.preventDefault(); EL.onMemorizeClick('check-type', event.target); }
     if (event.target.id === 'gap-input') { event.preventDefault(); EL.onCinemaClick('check-gap', event.target); }
   });
 
+  document.addEventListener('paste', function (event) {
+    if (EL.ui.page === 'vocabulary' && EL.onMemorizePaste) EL.onMemorizePaste(event);
+  });
+
   document.addEventListener('change', async function (event) {
+    if (event.target.id === 'own-image') {
+      const file = event.target.files && event.target.files[0];
+      if (file && EL.onOwnImage) await EL.onOwnImage(file);
+      event.target.value = '';
+      return;
+    }
     if (event.target.id === 'import-file') {
       const file = event.target.files && event.target.files[0];
       const message = function (text) {

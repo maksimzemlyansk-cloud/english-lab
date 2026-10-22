@@ -66,7 +66,7 @@ function watch(page, errors) {
   page.on('console', msg => {
     if (msg.type() !== 'error') return;
     const text = msg.text();
-    if (/dictionaryapi|mymemory|youtube|googleapis|gstatic|CORS policy|ERR_FAILED/i.test(text)) return;
+    if (/dictionaryapi|mymemory|youtube|googleapis|gstatic|openverse|wikimedia|commons|CORS policy|ERR_FAILED/i.test(text)) return;
     errors.push('console: ' + text);
   });
 }
@@ -173,7 +173,7 @@ async function run() {
     await page.waitForSelector('#word-en');
     await page.type('#word-en', 'hello');
     await page.type('#word-ru', 'привет');
-    await clickText(page, 'Добавить');
+    await clickText(page, 'В словарь');
     await page.waitForFunction(() => document.body.innerText.includes('hello'));
     await clickText(page, 'Повторение');
     for (let i = 0; i < 4; i++) {
@@ -195,6 +195,64 @@ async function run() {
     assert.equal(vocab.source, 'manual');
     assert.ok(vocab.reps >= 1);
     assert.match(await bodyText(page), /hello/);
+
+    await clickText(page, 'Стартовый набор');
+    await page.waitForFunction(() => /не записывает/i.test(document.body.innerText));
+    const before = await page.evaluate(() => JSON.parse(localStorage.getItem('english-lab-free-v1')).words.length);
+    await page.evaluate(() => document.querySelector('button[data-en="passport"]').click());
+    const seeded = await page.evaluate(() => {
+      const word = window.EL.state.data.words.find(item => item.en === 'passport');
+      return {
+        stage: word.stage,
+        ru: word.ru,
+        source: word.source,
+        context: word.context,
+        due: window.EL.dueWords().some(item => item.en === 'passport'),
+        count: window.EL.state.data.words.length
+      };
+    });
+    assert.equal(seeded.stage, 'learn');
+    assert.equal(seeded.ru, 'паспорт');
+    assert.equal(seeded.source, 'starter');
+    assert.match(seeded.context, /passport/);
+    assert.equal(seeded.due, false);
+    assert.equal(seeded.count, before + 1);
+    await clickText(page, 'К заучиванию');
+    await clickText(page, 'Начать 5');
+    await page.waitForFunction(() => document.body.innerText.includes('passport') && document.body.innerText.includes('паспорт'));
+    await clickText(page, 'Найти картинку');
+    await page.waitForFunction(() => {
+      const note = document.querySelector('#image-note');
+      return note && /Выбери картинку|Картинки нет/.test(note.textContent);
+    }, { timeout: 20000 });
+    const imageState = await page.evaluate(() => {
+      const img = document.querySelector('#assoc-img');
+      return { note: document.querySelector('#image-note').textContent, broken: !!(img && !img.hidden && !img.getAttribute('src')) };
+    });
+    assert.equal(imageState.broken, false);
+    assert.match(imageState.note, /картинк/i);
+    await clickText(page, 'Слушать');
+    await page.waitForFunction(() => {
+      const btn = [...document.querySelectorAll('button')].find(el => el.textContent.trim() === 'Дальше');
+      return btn && !btn.disabled;
+    });
+    await clickText(page, 'Дальше');
+    await page.waitForFunction(() => document.body.innerText.includes('Какой перевод'));
+    await clickText(page, 'паспорт');
+    await page.waitForSelector('#learn-type');
+    await page.type('#learn-type', 'pasport');
+    await clickText(page, 'Проверить');
+    await page.waitForFunction(() => document.body.innerText.includes('Слушай и выбери'));
+    await clickText(page, 'passport');
+    await page.waitForFunction(() => document.body.innerText.includes('Первый срок'));
+    const graduated = await page.evaluate(() => {
+      const word = window.EL.state.data.words.find(item => item.en === 'passport');
+      return { stage: word.stage, reps: word.reps, due: window.EL.dueWords().some(item => item.en === 'passport'), blob: JSON.stringify(word).includes('data:image') };
+    });
+    assert.equal(graduated.stage, 'review');
+    assert.equal(graduated.reps, 1);
+    assert.equal(graduated.due, false);
+    assert.equal(graduated.blob, false);
 
     await clickText(page, 'Кино');
     await page.waitForSelector('#video-file');

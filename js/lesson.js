@@ -146,7 +146,7 @@
         : '<p class="muted small">Откроется после урока ' + (lesson.id - 1) + '.</p>';
       return '<section class="card"><div class="row"><div><div class="eyebrow">Урок ' + lesson.id + '</div><h2>' + EL.esc(lesson.title) + '</h2><p class="muted">' + EL.esc(lesson.subtitle) + '</p></div><span class="pill">' + label + '</span></div>' + extra + '</section>';
     }).join('');
-    EL.app.innerHTML = '<section class="hero"><div class="eyebrow">Курс</div><h1>Уроки 1–4</h1><p class="muted">Сейчас продолжаем урок ' + data.currentLesson + '. Пройденные и уже открытые уроки можно повторять. Новый урок открывается после итога предыдущего.</p></section>' + cards;
+    EL.app.innerHTML = '<section class="hero"><div class="eyebrow">Курс</div><h1>Уроки 1–4</h1><p class="muted">Сейчас продолжаем урок ' + data.currentLesson + '. Пройденные и уже открытые уроки можно повторять. Новый урок открывается после итога предыдущего. Примеры про поездку и общение: аэропорт, отель, дорога, кафе, знакомство, сообщения.</p></section>' + cards;
   }
 
   function renderRun() {
