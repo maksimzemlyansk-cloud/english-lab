@@ -1,0 +1,14 @@
+{
+  "name": "English Lab",
+  "short_name": "English Lab",
+  "description": "Личная лаборатория американского английского",
+  "lang": "ru",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111218",
+  "theme_color": "#111218",
+  "icons": [
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}
